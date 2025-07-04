@@ -11,24 +11,24 @@ import "./TaskBoard.css";
 const statuses = ["Pending", "In Progress", "Completed"];
 
 const statusConfig = {
-  "Pending": { 
-    color: "#f59e0b", 
-    bgColor: "#fef3c7", 
+  Pending: {
+    color: "#f59e0b",
+    bgColor: "#fef3c7",
     icon: "⏳",
-    gradient: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)"
+    gradient: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
   },
-  "In Progress": { 
-    color: "#3b82f6", 
-    bgColor: "#dbeafe", 
+  "In Progress": {
+    color: "#3b82f6",
+    bgColor: "#dbeafe",
     icon: "🚀",
-    gradient: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)"
+    gradient: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)",
   },
-  "Completed": { 
-    color: "#10b981", 
-    bgColor: "#d1fae5", 
+  Completed: {
+    color: "#10b981",
+    bgColor: "#d1fae5",
     icon: "✅",
-    gradient: "linear-gradient(135deg, #34d399 0%, #10b981 100%)"
-  }
+    gradient: "linear-gradient(135deg, #34d399 0%, #10b981 100%)",
+  },
 };
 
 const TaskBoard = () => {
@@ -103,33 +103,43 @@ const TaskBoard = () => {
   const getTaskCount = (status) => {
     return tasks[status]?.length || 0;
   };
+  const onDelete = async (task) => {
+    try {
+      await axios.delete(`/tasks/${task._id}`);
+      toast.success("Task deleted");
+      fetchTasks(); // reload task list
+    } catch (err) {
+      toast.error("Failed to delete task");
+    }
+  };
 
   return (
     <div className="taskboard-container">
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           style: {
-            background: '#1f2937',
-            color: '#f9fafb',
-            borderRadius: '12px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            background: "#1f2937",
+            color: "#f9fafb",
+            borderRadius: "12px",
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
           },
         }}
       />
-      
+
       <div className="taskboard-header">
         <div className="header-left">
           <Typography variant="h4" component="h1" className="board-title">
             My Tasks
           </Typography>
-          <Chip 
+          <Chip
             label={`${getTotalTasks()} total tasks`}
             size="small"
             className="task-counter"
           />
         </div>
-        
+
         <div className="header-actions">
           <IconButton className="action-btn">
             <Search />
@@ -140,8 +150,8 @@ const TaskBoard = () => {
           <IconButton className="action-btn">
             <MoreVert />
           </IconButton>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             startIcon={<Add />}
             onClick={() => setOpen(true)}
             className="add-task-btn"
@@ -157,20 +167,22 @@ const TaskBoard = () => {
             <div key={status} className="task-column">
               <div className="column-header">
                 <div className="column-title-wrapper">
-                  <span className="column-icon">{statusConfig[status].icon}</span>
+                  <span className="column-icon">
+                    {statusConfig[status].icon}
+                  </span>
                   <Typography variant="h6" className="column-title">
                     {status}
                   </Typography>
                 </div>
                 <div className="column-actions">
-                  <Chip 
+                  <Chip
                     label={getTaskCount(status)}
                     size="small"
                     style={{
                       backgroundColor: statusConfig[status].bgColor,
                       color: statusConfig[status].color,
-                      fontWeight: 'bold',
-                      minWidth: '28px'
+                      fontWeight: "bold",
+                      minWidth: "28px",
                     }}
                   />
                   <IconButton size="small" className="column-menu">
@@ -178,12 +190,31 @@ const TaskBoard = () => {
                   </IconButton>
                 </div>
               </div>
-              
-              <div className="column-divider" style={{
-                background: statusConfig[status].gradient
-              }} />
-              
-              <TaskList tasks={tasks[status] || []} column={status} />
+
+              <div
+                className="column-divider"
+                style={{
+                  background: statusConfig[status].gradient,
+                }}
+              />
+
+              <TaskList
+                tasks={tasks[status] || []}
+                column={status}
+                onDelete={onDelete}
+                onEdit={(task) => setOpen(true)} // or your edit handler
+                onToggleComplete={(task) => {
+                  const updated = {
+                    ...task,
+                    status:
+                      task.status === "Completed" ? "Pending" : "Completed",
+                  };
+                  axios
+                    .put(`/tasks/${task._id}`, updated)
+                    .then(() => fetchTasks())
+                    .catch(() => toast.error("Failed to update status"));
+                }}
+              />
             </div>
           ))}
         </div>

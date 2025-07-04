@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/', protect, getTasks);
 router.post('/', protect, createTask);
 router.put('/:id', protect, updateTask);
-router.delete('/:id', protect, deleteTask);
+router.delete('/:id', protect, deleteTask); // ✅ Add this line
 router.patch('/reorder', protect, reorderTasks);
 
 export default router;
